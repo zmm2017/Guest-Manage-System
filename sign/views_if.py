@@ -90,7 +90,7 @@ def add_guest(request):
 	if result:
 		return JsonResponse({'status':10022,'message':'Guest id already exists.'})
 
-	result=Event.objects.filter(id=event_id).status
+	result=Event.objects.get(id=event_id).status
 	if not result:
 		return JsonResponse({'status':10025,'message':'Event status is not available.'})
 
