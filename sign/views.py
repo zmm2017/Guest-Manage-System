@@ -1,0 +1,96 @@
+from django.shortcuts import render,get_object_or_404
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.contrib import auth
+from django.contrib.auth.decorators import login_required
+from sign.models import Event,Guest
+
+# Create your views here.
+def index(request):
+	return render(request,'index.html')
+def home(request):
+	return render(request,'login.html')
+
+def login_action(request):
+	username=request.POST.get('username','')
+	password=request.POST.get('password','')
+	user=auth.authenticate(username=username,password=password)
+	if user is not None:
+		auth.login(request,user)
+		response=HttpResponseRedirect('/event_manage/')
+		response.set_cookie('user',username,3600)
+		return response
+	else:
+		return render(request,'login.html',{'error':'error or password is not correct.'})
+
+@login_required
+def event_manage(request):
+	username=request.COOKIES.get('user','')
+	event_list=Event.objects.all()
+	return render(request,'event_manage.html',{'user':username,'events':event_list})
+
+def logout(request):
+	auth.logout(request)
+	response=HttpResponseRedirect('/')
+	return response
+
+@login_required
+def search_name(request):
+	event_name=request.GET.get('name','')
+	event=Event.objects.filter(name__contains=event_name)
+	return render(request,'event_manage.html',{'events':event})
+
+@login_required
+def guest_manage(request):
+	username=request.COOKIES.get('user','')
+	guest_list=Guest.objects.all()
+	return render(request,'guest_manage.html',{'user':username,'guests':guest_list})
+
+@login_required
+def search_realname(request):
+	username=request.COOKIES.get('user','')
+	filter_realname=request.GET.get('realname','')
+	guest_list=Guest.objects.filter(realname__contains=filter_realname)
+	return render(request,'guest_manage.html',{'user':username, 'guests':guest_list})
+
+@login_required
+def sign_index(request,eid):
+	event=get_object_or_404(Event,id=eid)
+	guest_list=Guest.objects.filter(event_id=eid)
+	sum1=0
+	sum2=0
+	for event1 in guest_list:
+		sum1=sum1+1
+		if not event1.sign:
+			sum2=sum2+1
+	return render(request,'sign_index.html',{'event':event,'guest_total':sum1,'guest_unsign':sum2})
+
+@login_required
+def sign_index_action(request,eid):
+	event=get_object_or_404(Event,id=eid)
+	phone=request.POST.get('phone','')
+
+	guest_list=Guest.objects.filter(event_id=eid)
+	sum1=0
+	sum2=0
+	for event1 in guest_list:
+		sum1=sum1+1
+		if not event1.sign:
+			sum2=sum2+1
+
+	result=Guest.objects.filter(phone=phone)
+	if not result:
+		return render(request,"sign_index.html",{'event':event, 'hint':"Phone error.",'guest_total':sum1,'guest_unsign':sum2 })
+	
+	result=Guest.objects.filter(phone=phone, event_id=eid)
+	if not result:
+		return render(request,"sign_index.html",{'event':event, 'hint':"Phone or event id error.",'guest_total':sum1,'guest_unsign':sum2 })
+
+	result=Guest.objects.get(phone=phone, event_id=eid)
+	if result.sign:
+		return render(request,"sign_index.html",{'event':event, 'hint':"User has already signed in.",'guest_total':sum1,'guest_unsign':sum2 })
+	else:
+		Guest.objects.filter(phone=phone,event_id=eid).update(sign='1')
+		sum2=sum2-1
+		return render(request,"sign_index.html",{'event':event, 'hint':"sign in success", 'guest':result,'guest_total':sum1,'guest_unsign':sum2 })
+
