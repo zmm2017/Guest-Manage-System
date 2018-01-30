@@ -117,3 +117,42 @@ def add_guest(request):
 			return JsonResponse({'status':'10024','message':'create_time format error'})
 
 		return JsonResponse({'status':200,'message':'add event success'})
+
+
+def get_guest_list(request):
+	phone=request.GET.get('phone','')
+	name=request.GET.get('name','')
+	if phone=='' and name=='':
+		return JsonResponse({'status':10021,'message':'At least input a parameter.'})
+
+	if phone!='':
+		guest={}
+		try:
+			result=Guest.objects.get(phone=phone)
+		except ObjectDoesNotExist:
+			return JsonResponse({'status':10022,'message':'query result is empty'})
+		else:
+			guest['event_id']=result.event_id
+			guest['realname']=result.realname
+			guest['phone']=result.phone
+			guest['email']=result.email
+			guest['sign']=result.sign
+			guest['create_time']=result.create_time
+			return JsonResponse({'status':10023, 'message':'success','data':guest})
+	if name!='':
+		datas=[]
+		try:
+			results=Guest.objects.filter(realname__contains=name)
+		except ObjectDoesNotExist:
+			return JsonResponse({'status':10024,'message':'Doesn not have this kind of guest'})
+		else:
+			for g in results:
+				guest={}
+				guest['event_id']=g.event_id
+				guest['realname']=g.realname
+				guest['phone']=g.phone
+				guest['email']=g.email
+				guest['sign']=g.sign
+				guest['create_time']=g.create_time
+				datas.append(guest)
+			return JsonResponse({'status':10025,'message':'success','data':datas})
