@@ -98,6 +98,11 @@ def add_guest(request):
 	if result:
 		return JsonResponse({'status':10023, 'message':'Guest phone already exists.'})
 
+	event_limit=Event.objects.get(id=event_id).lim
+	guest_limit=Guest.objects.filter(event_id=event_id)
+	if len(guest_limit)>len(event_limit):
+		return JsonResponse({'status':10026,'message':'event number is full'})
+
 	if sign=='':
 		sign=1
 
