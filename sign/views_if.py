@@ -1,6 +1,7 @@
 from sign.models import Event,Guest
 from django.http import JsonResponse
 from django.core.exceptions import ValidationError,ObjectDoesNotExist
+import time
 
 def add_event(request):
 	eid=request.POST.get('eid','')
@@ -156,3 +157,40 @@ def get_guest_list(request):
 				guest['create_time']=g.create_time
 				datas.append(guest)
 			return JsonResponse({'status':10025,'message':'success','data':datas})
+
+
+def user_sign(request):
+	eid=request.GET.get('eid','')
+	phone=request.GET.get('phone','')
+	if eid=='' or phone=='':
+		return JsonResponse({'status':10021,'message':'parameter error'})
+	result=Event.objects.filter(id=eid)
+	if not result:
+		return JsonResponse({'status':10022,'message':'Event does NOT exist.'})
+
+	result=Event.objects.get(id=eid).status
+	if not result:
+		return JsonResponse({'status':10023,'message':'Event is NOT available.'})
+
+	event_time=Event.objects.get(id=eid).start_time
+	etime=str(event_time).split('.')[0]
+	timeArray=time.strptime(etime,"%Y-%m-%d %H:%M:%S")
+	e_time=int(time.mktime(timeArray))
+
+	now_time=str(time.time())
+	ntime=now_time.split('.')[0]
+	n_time=int(ntime)
+
+	if n_time>=e_time:
+		return JsonResponse({'status':10024,'message':'Event has started.'})
+
+	result=Guest.objects.get(phone=phone).event_id
+	if int(result)!= int(eid):
+		return JsonResponse({'status':10025,'message':"The guest NOT in the event, unable to sign."})
+
+	result=Guest.objects.get(phone=phone).sign
+	if result:
+		return JsonResponse({'status':10026,'message':"You have already signed in. Welcome to our party."})
+	else:
+		Guest.objects.filter(phone=phone).update(sign="True")
+		return JsonResponse({'status':10027,'message':"Sign in successfully. Welcome!"})
