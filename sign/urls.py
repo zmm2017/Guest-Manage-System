@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^get_event_list',views_if.get_event_list),
     url(r'^add_guest',views_if.add_guest),
     url(r'^get_guest_list',views_if.get_guest_list),
+    url(r'^user_sign',views_if.user_sign),
 ]
