@@ -54,11 +54,11 @@ class DB:
 		for key in table_data:
 			table_data[key]="'"+str(table_data[key])+"'"
 		key=','.join(table_data.keys())
-		print("key:"+key)
+		#print("key:"+key)
 		value=','.join(table_data.values())
-		print("value:"+value)
+		#print("value:"+value)
 		real_sql="insert into "+table_name+" ("+key+")"+" values ("+value+");"
-		print(real_sql)
+		#print(real_sql)
 		with self.conn.cursor() as cursor:
 			cursor.execute(real_sql)
 		self.conn.commit()
@@ -71,6 +71,6 @@ class DB:
 
 if __name__=="__main__":
 	db=DB()
-	data={'id':2,'name':'mi 2','address':'add-mi2','lim':200,'status':1,'start_time':'2018-05-18 10:00:00', 'create_time':'2018-02-09 17:00:00'}
+	#data={'id':2,'name':'mi 2','address':'add-mi2','lim':200,'status':1,'start_time':'2018-05-18 10:00:00', 'create_time':'2018-02-09 17:00:00'}
 	db.clear('sign_event')
 	db.insert('sign_event',data)
