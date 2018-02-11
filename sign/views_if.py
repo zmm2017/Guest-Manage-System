@@ -30,7 +30,7 @@ def add_event(request):
 		Event.objects.create(id=eid,name=name,lim=lim,status=int(status),address=address,start_time=start_time,create_time=create_time)
 	except ValidationError as e:
 		error='start_time format error.It must be in YYYY-MM-DD HH:MM:SS format'
-		return JsonResponse({'status':'10024','message':'start_time format error'})
+		return JsonResponse({'status':10024,'message':'start_time format error'})
 
 	return JsonResponse({'status':200,'message':'add event success'})
 
